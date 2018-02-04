@@ -42,9 +42,32 @@ namespace AsyncAwait
             var content = await response.Content.ReadAsStringAsync();
             Console.WriteLine("Finished awaiting content for: " + urlString);
 
-            Console.WriteLine("Finished getting results for: " + urlString);
             return content;
         }
+
+
+        /*
+        // Working on my own threads
+        MyThreadCall(int waitMS)
+        {
+            MyThreadCallAsync(int waitMs);
+        }
+
+        static async Task<int> MyThreadCallAsync(int waitMs)
+        {
+            var task = await MakeMyOwnThread(5000);
+            return task;
+        }
+
+        static Task<int> MakeMyOwnThread(int waitMs)
+        {
+            return Task.Run<int>(() => 
+            {
+                Task.Delay(waitMs);
+                return 1;
+            });
+        }
+        */
 
     }
 }
