@@ -1,21 +1,73 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+
+// https://stackoverflow.com/questions/16195994/can-you-call-wait-on-a-task-multiple-times
+// https://stackoverflow.com/questions/6123406/waitall-vs-whenall
 
 namespace AsyncAwait
 {
     class Program
     {
+        static public Dictionary<String, Task> myTask = new Dictionary<String, Task>();
+
         static void Main(string[] args)
         {
-            GetWebPage();
-            Console.WriteLine("Program Complete!");
+            int waitTimeMs = 5000;
+            Console.WriteLine("Calling MyThreadCallAsync for thread [{0}]", 0);
+            MyThreadCallAsync(waitTimeMs, 0);
+            Thread.Sleep(1000);
+
+            Console.WriteLine("Calling MyThreadCallAsync for thread [{0}]", 1);
+            MyThreadCallAsync(waitTimeMs, 1);
+            Thread.Sleep(1000);
+
+            Console.WriteLine("Calling MyThreadCallAsync for thread [{0}]", 2);
+            MyThreadCallAsync(waitTimeMs, 2);
+            Thread.Sleep(1000);
+
+            Console.WriteLine("Calling MyThreadCallAsync for thread [{0}]", 3);
+            MyThreadCallAsync(waitTimeMs, 3).Wait();
+
+            Console.WriteLine("Finished all threads");
+
+            //GetWebPage();
+            //Console.WriteLine("Program Complete!");
+
+            Console.Write("Press any key to exit");
             Console.Read();
         }
 
+        static async Task<int> MyThreadCallAsync(int waitMs, int threadNum)
+        {
+            if (!myTask.ContainsKey("sku1"))
+            {
+                Console.WriteLine("Kicking off async task for thread [{0}] at time [{1}]", threadNum, DateTime.Now);
+                myTask["sku1"] = Task.Run<int>(() =>
+                {
+                    Console.WriteLine("Starting wait of {0} ms", waitMs);
+                    Thread.Sleep(waitMs);
+                    Console.WriteLine("Completed wait of {0} ms", waitMs);
+                    return 1;
+                });
+                Console.WriteLine("Completed kicking off asynctask for thread [{0}] at time [{1}]", threadNum, DateTime.Now);
+            }
+            else
+            {
+                Console.WriteLine("Waiting on task for thread [{0}] at time [{1}]", threadNum, DateTime.Now);
+                await Task.WhenAll(myTask["sku1"]);
+                Console.WriteLine("Finished waiting on task for thread [{0}] at time [{1}]", threadNum, DateTime.Now);
+            }
+
+            return waitMs;
+        }
+
+/// ///////////////////// Old code below this. Please ignore ////////////////////////////////////
         static void GetWebPage()
         {
             // Call without waiting
